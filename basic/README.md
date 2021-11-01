@@ -155,4 +155,4 @@
     go run main.go
     ```
 
-1. Using curl to test `curl http://8080/albums`
+1. Using curl to test `curl http://127.0.0.1:8080/albums`
