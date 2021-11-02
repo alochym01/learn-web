@@ -33,7 +33,7 @@
         1. `gin.Context` is the most important part of Gin
     1. Call `Context.IndentedJSON` to serialize the struct into JSON and add it to the response.
     1. We are passing the `StatusOK` constant from the `net/http` package to indicate 200 OK
-1. Add code to Add albums data to the list of albums -- Create a new Album
+1. Add code to add albums data to the list of albums -- Create a new Album
 
     ```go
     // postAlbums adds an album from JSON received in the request body.
@@ -51,7 +51,7 @@
     }
     ```
 
-1. Add logic to Retrieve the requested album.
+1. Add logic to retrieve the requested album.
 
     ```go
     // getAlbumByID locates the album whose ID value matches the id
@@ -71,7 +71,7 @@
     }
     ```
 
-1. Add logic to Update the album.
+1. Add logic to update the album.
 
     ```go
     // updateAlbumByID locates the album whose ID value matches the id
