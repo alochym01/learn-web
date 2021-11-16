@@ -24,7 +24,7 @@ func NewLoginHandler(svc service.LoginService) LoginHandler {
 func (a *LoginHandler) Login(c *gin.Context) {
 	var loginRequest domain.LoginRequest
 
-	// Call BindJSON to bind the received JSON to newAlbum.
+	// Call BindJSON to bind the received JSON to LoginRequest.
 	if err := c.BindJSON(&loginRequest); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Not Enough Attribute"})
 		return

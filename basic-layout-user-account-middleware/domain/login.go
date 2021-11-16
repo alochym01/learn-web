@@ -9,9 +9,8 @@ import (
 const TOKEN_EXPIRE = time.Hour
 const HMAC_SAMPLE_SECRET = "hmacSampleSECRET"
 
-type Claim struct {
-	Expire int
-	Token  string
+type TokenResponse struct {
+	TokenString string `json:"token"`
 }
 
 type Login struct {
@@ -26,8 +25,4 @@ type LoginRepository interface {
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-}
-
-func (l Login) GenerateToken() (*string, error) {
-
 }
