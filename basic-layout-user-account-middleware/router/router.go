@@ -2,6 +2,9 @@ package router
 
 import (
 	"database/sql"
+	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/alochym01/learn-web/basic-layout-user-account-middleware/handler"
@@ -10,6 +13,8 @@ import (
 	"github.com/alochym01/learn-web/basic-layout-user-account-middleware/storage"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
+	"go.uber.org/zap"
 )
 
 func Router(db *sql.DB) *gin.Engine {
@@ -73,5 +78,100 @@ func Router(db *sql.DB) *gin.Engine {
 	// Login routes
 	router.POST("/login", loginHandler.Login) // POST HTTP method with /login will be routed to Login function
 
+	// Using middleware
+	authRoutes := router.Group("/").Use(authMiddleware(log))
+	authRoutes.GET("/protected", userHandler.GetUserByID) // GET HTTP method with /Users/id will be routed to getUserByID function
 	return router
+}
+
+func authMiddleware(l *zap.Logger) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// Header format
+		// GET /users/2 HTTP/1.1
+		// Host: 127.0.0.1:8080
+		// User-Agent: curl/7.47.0
+		// Accept: */*
+		// Content-Type: application/json
+		// Authorization: Bearer eyJhbGciO.....
+		authorizationHeader := ctx.GetHeader("authorization")
+
+		if len(authorizationHeader) == 0 {
+			l.Warn("authorization header is not provided")
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"errs": "authorization header is not provided",
+			})
+			return
+		}
+
+		// string split "Bearer eyJ...." => ["Bearer", "ey....J"]
+		fields := strings.Fields(authorizationHeader)
+		if len(fields) < 2 {
+			l.Warn("invalid authorization header format")
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"errs": "authorization header is not provided",
+			})
+			return
+		}
+
+		// Authorization: Bearer eyJhbGciO.....
+		authorizationType := strings.ToLower(fields[0])
+		if authorizationType != "bearer" {
+			l.Warn(fmt.Sprintf("unsupported authorization type %s", authorizationType))
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"errs": authorizationType,
+			})
+			return
+		}
+
+		// Set tokenString
+		tokenString := fields[1]
+
+		// Parse, validate, and return a token.
+		// https://pkg.go.dev/github.com/golang-jwt/jwt#example-Parse-Hmac
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			// Don't forget to validate the alg is what you expect:
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				l.Warn(fmt.Sprintf("Unexpected signing method: %v", token.Header["alg"]))
+				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			}
+
+			// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
+			return []byte(service.HMAC_SAMPLE_SECRET), nil
+		})
+
+		if err != nil {
+			//  handle token expire
+			// fmt.Println(err.Error()) // "Token is expired"
+			if err.Error() == "Token is expired" {
+				l.Warn("Token is expired")
+				ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+					"errs": "Token is expired",
+				})
+				return
+			}
+
+			//  handle token invalid
+			l.Warn(err.Error())
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"errs": token.Header["alg"],
+			})
+
+			return
+		}
+
+		if token.Valid {
+			ctx.Next()
+		}
+
+		// if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// 	// Before go to Application
+		// 	fmt.Println(claims["exp"])
+		// 	fmt.Println("Go Through Middleware")
+
+		// 	ctx.Next()
+
+		// 	// After application process
+		// 	fmt.Println("Response to User")
+		// }
+	}
 }

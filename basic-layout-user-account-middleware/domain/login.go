@@ -1,13 +1,8 @@
 package domain
 
 import (
-	"time"
-
 	"github.com/alochym01/learn-web/basic-layout-user-account-middleware/errs"
 )
-
-const TOKEN_EXPIRE = time.Hour
-const HMAC_SAMPLE_SECRET = "hmacSampleSECRET"
 
 type TokenResponse struct {
 	TokenString string `json:"token"`

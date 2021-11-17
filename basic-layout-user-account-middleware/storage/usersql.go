@@ -49,7 +49,7 @@ func (u UserSQL) FindAll() ([]domain.User, *errs.Error) {
 
 // FindByID ...
 func (u UserSQL) FindByID(id string) (*domain.User, *errs.Error) {
-	sqlstmt := "select * from users where id=?"
+	sqlstmt := "select id, email, fullname from users where id=?"
 
 	row := u.db.QueryRow(sqlstmt, id)
 	user := domain.User{}

@@ -8,6 +8,9 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+const TOKEN_EXPIRE = time.Hour
+const HMAC_SAMPLE_SECRET = "hmacSampleSECRET"
+
 // LoginService ...
 type LoginService struct {
 	storageRepo domain.LoginRepository
@@ -34,16 +37,17 @@ func (ls LoginService) ByEmail(temp domain.LoginRequest) (*domain.TokenResponse,
 	}
 
 	// 2. Generating a token
+	// https://pkg.go.dev/github.com/golang-jwt/jwt#example-New-Hmac
 	// Create jwt MapClaims
 	claims := jwt.MapClaims{}
 	claims["user"] = u.Email
-	claims["exp"] = time.Now().Add(domain.TOKEN_EXPIRE).Unix()
+	claims["exp"] = time.Now().Add(TOKEN_EXPIRE).Unix()
 
 	// Create jwt Claim
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err1 := token.SignedString([]byte(domain.HMAC_SAMPLE_SECRET))
+	tokenString, err1 := token.SignedString([]byte(HMAC_SAMPLE_SECRET))
 	if err1 != nil {
 		return nil, errs.ServerError("Server Internal Error")
 	}
