@@ -22,109 +22,73 @@
        └── router.go
    ```
 
-2. Create an `AlbumRepository Interface` in `domain/album.go`
-
-   ```go
-   package domain
-
-   // AlbumRepository ...
-   type AlbumRepository interface {
-   	FindAll() ([]Album, error)
-   	FindByID(int) (*Album, error)
-   	Create(Album) (*int, error)
-   	Update(Album) error
-   	Delete(int) error
-   }
-   ```
-
-3. Create `AlbumStorage Object` in [`storage/memory/album.go`](storage/memory/album.go) to implement all functions of `AlbumRepository Interface`
+2. Create a [`storage/sqlite3/album.go`](storage/sqlite3/album.go) file to implement all functions of `AlbumRepository Interface`
 
    ```go
    // Album ...
    type Album struct {
-   	al []domain.Album
+   	db *sql.DB
    }
 
    // NewAlbum ...
-   func NewAlbum() Album {
-   	albums := []domain.Album{
-   		{ID: 1, Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
-   		{ID: 2, Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
-   		{ID: 3, Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
-   	}
-
+   func NewAlbum(DB *sql.DB) Album {
    	return Album{
-   		al: albums,
+   		db: DB,
    	}
    }
 
    func (a *Album) FindAll() ([]Album, error) {}
    func (a *Album) FindByID(int) (*Album, error) {}
-   func (a *Album) Create(Album) (*int, error) {}
+   func (a *Album) Create(Album) (*int64, error) {} // change func (a *Album) Create(Album) (*int, error) {}
    func (a *Album) Update(Album) error {}
    func (a *Album) Delete(int) error {}
    ```
 
-4. Create a `AlbumServiceRepository Interface` in `service/album.go`
+3. Change `AlbumRepository Interface`
 
    ```go
-   // AlbumServiceRepository ...
-   type AlbumServiceRepository interface {
-   	GetAlbums() ([]domain.Album, error)
-   	ByID(int) (*domain.Album, error)
-   	Create(domain.AlbumRequest) (*int, error)
-   	Update(int, domain.AlbumRequest) error
+   // AlbumRepository ...
+   type AlbumRepository interface {
+   	FindAll() ([]Album, error)
+   	FindByID(int) (*Album, error)
+   	Create(Album) (*int64, error) // Create(Album) (*int, error)
+   	Update(Album) error
    	Delete(int) error
    }
    ```
 
-5. Create AlbumService Object in `service/album.go` to implement all function of `AlbumServiceRepository Interface`
+4. Putting all together in `router/router.go`
 
    ```go
-   // AlbumService ...
-   type AlbumService struct {
-   	storageRepo domain.AlbumRepository
-   }
-
-   // NewAlbumService ...
-   func NewAlbumService(repo domain.AlbumRepository) AlbumService {
-   	return AlbumService{
-   		storageRepo: repo,
-   	}
-   }
-
-   func (svc AlbumService) GetAlbums() ([]domain.Album, error) {}
-   func (svc AlbumService) ByID(int) (*domain.Album, error) {}
-   func (svc AlbumService) Create(domain.AlbumRequest) (*int, error) {}
-   func (svc AlbumService) Update(int, domain.AlbumRequest) error {}
-   func (svc AlbumService) Delete(int) error {}
+	// New Album Storage - SQLite
+	storeAlbum := sqlite3.NewAlbum(db)
    ```
 
-6. Refactor AlbumHandler using svc attribute to bind a an AlbumServiceRepository
+5. Update `main.go` with sql object
 
    ```go
-   // AlbumHandler ...
-   type AlbumHandler struct {
-   	svcRepo service.AlbumServiceRepository
-   }
+   package main
 
-   // NewAlbumHandler ...
-   func NewAlbumHandler(svc service.AlbumService) AlbumHandler {
-   	return AlbumHandler{
-   		svcRepo: svc,
+   import (
+   	"database/sql"
+
+   	"github.com/alochym01/web-w-gin/router"
+
+   	_ "github.com/mattn/go-sqlite3"
+   )
+
+   func main() {
+   	db, err1 := sql.Open("sqlite3", "alochym.db")
+
+   	if err1 != nil {
+   		panic(err1)
    	}
+
+   	defer db.Close()
+
+   	r := router.Router(db)
+   	r.Run("localhost:8080")
    }
-   ```
-
-7. Putting all together in `router/router.go`
-
-   ```go
-   // New Album Storage
-	storeAlbum := memory.NewAlbum()
-	// New Album Service
-	svcService := service.NewAlbumService(&storeAlbum) // because of using pointer **receiver
-	// New Album Handler
-	aHandler := handler.NewAlbumHandler(svcService)
    ```
 
 ## Using curl to test
