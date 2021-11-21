@@ -1,4 +1,4 @@
-# Gin hello world
+# Gin hello world - Day 01
 
 ## Install Auto Reload Air
 
@@ -15,6 +15,17 @@
 ## Create Entry Point file
 
 1. touch [main.go](main.go)
+2. Define Album struct
+
+   ```go
+   // Album represents data about a record Album.
+   type Album struct {
+       ID     int
+       Title  string
+       Artist string
+       Price  float64
+   }
+   ```
 
 ## Using Auto Reload air
 
