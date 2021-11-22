@@ -6,17 +6,20 @@ import (
 	"fmt"
 
 	"github.com/alochym01/web-w-gin/domain"
+	"go.uber.org/zap"
 )
 
 // Album ...
 type Album struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *zap.Logger
 }
 
 // NewAlbum ...
-func NewAlbum(DB *sql.DB) Album {
+func NewAlbum(DB *sql.DB, l *zap.Logger) Album {
 	return Album{
-		db: DB,
+		db:     DB,
+		logger: l,
 	}
 }
 
@@ -56,11 +59,11 @@ func (a Album) FindByID(id int) (*domain.Album, error) {
 	err := row.Scan(&album.ID, &album.Title, &album.Artist, &album.Price)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			fmt.Println("Record Not Found", err.Error())
+			a.logger.Warn(err.Error())
 			return nil, err
 		}
 
-		fmt.Println("Server Scanning Row Error", err.Error())
+		a.logger.Error(err.Error())
 		return nil, err
 	}
 
