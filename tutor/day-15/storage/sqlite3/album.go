@@ -69,8 +69,7 @@ func (a Album) FindByID(id int) (*domain.Album, error) {
 
 // Create adds an album from JSON received in the request body.
 func (a Album) Create(album domain.Album) (*int64, error) { // sqlstmt - Avoid SQL Injection Attack
-	sqlstmt := fmt.Sprintf("INSERT INTO albums(id, title, artist, price) VALUES(%d,\"%s\", \"%s\", %f)",
-		album.ID,
+	sqlstmt := fmt.Sprintf("INSERT INTO albums(title, artist, price) VALUES(\"%s\", \"%s\", %f)",
 		album.Title,
 		album.Artist,
 		album.Price,

@@ -2,12 +2,13 @@ package service
 
 import (
 	"github.com/alochym01/web-w-gin/domain"
+	"github.com/alochym01/web-w-gin/errs"
 )
 
 // AlbumServiceRepository ...
 type AlbumServiceRepository interface {
 	GetAlbums() ([]domain.Album, error)
-	ByID(int) (*domain.Album, error)
+	ByID(int) (*domain.Album, *errs.AppErr)
 	Create(domain.AlbumRequest) (*int64, error)
 	Update(int, domain.AlbumRequest) error
 	Delete(int) error
@@ -32,7 +33,7 @@ func (svc AlbumService) GetAlbums() ([]domain.Album, error) {
 
 // ByID locates the album whose ID value matches the id
 // parameter sent by the client, then returns that album as a response.
-func (svc AlbumService) ByID(id int) (*domain.Album, error) {
+func (svc AlbumService) ByID(id int) (*domain.Album, *errs.AppErr) {
 	return svc.storageRepo.FindByID(id)
 }
 

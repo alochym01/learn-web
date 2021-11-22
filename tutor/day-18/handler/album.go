@@ -47,10 +47,10 @@ func (a *AlbumHandler) GetAlbumsByID(c *gin.Context) {
 	}
 
 	// Get Album by using service
-	album, err := a.svcRepo.ByID(id)
+	album, errs := a.svcRepo.ByID(id)
 
-	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{"data": "album not found"})
+	if errs != nil {
+		c.IndentedJSON(errs.Code, gin.H{"data": errs.Message})
 		return
 	}
 

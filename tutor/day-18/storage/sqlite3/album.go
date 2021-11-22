@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/alochym01/web-w-gin/domain"
+	"github.com/alochym01/web-w-gin/errs"
 )
 
 // Album ...
@@ -48,7 +49,7 @@ func (a Album) FindAll() ([]domain.Album, error) {
 }
 
 // FindByID locates the album whose ID value matches the id
-func (a Album) FindByID(id int) (*domain.Album, error) {
+func (a Album) FindByID(id int) (*domain.Album, *errs.AppErr) {
 	sqlstmt := "select * from albums where id=?"
 
 	row := a.db.QueryRow(sqlstmt, id)
@@ -57,11 +58,11 @@ func (a Album) FindByID(id int) (*domain.Album, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("Record Not Found", err.Error())
-			return nil, err
+			return nil, errs.NotFound()
 		}
 
 		fmt.Println("Server Scanning Row Error", err.Error())
-		return nil, err
+		return nil, errs.ServerError()
 	}
 
 	return &album, nil

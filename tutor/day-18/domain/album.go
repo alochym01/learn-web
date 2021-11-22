@@ -1,5 +1,7 @@
 package domain
 
+import "github.com/alochym01/web-w-gin/errs"
+
 // Album represents data about a record Album.
 type Album struct {
 	ID     int
@@ -11,7 +13,7 @@ type Album struct {
 // AlbumRepository ...
 type AlbumRepository interface {
 	FindAll() ([]Album, error)
-	FindByID(int) (*Album, error)
+	FindByID(int) (*Album, *errs.AppErr)
 	Create(Album) (*int64, error)
 	Update(Album) error
 	Delete(int) error
